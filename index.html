@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Psiho Senzorial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: bara de module sus, o singura zona de lucru centrata; fise si quiz pe aceeasi coloana de ~640px */
+:root{
+  --bg:#EEF2F4; --surface:#FFFFFF; --ink:#16202A; --muted:#5A6874; --line:#D3DCE2;
+  --accent:#0E6E68; --accent-soft:#D6ECEA; --good:#2F7A3B; --good-soft:#DDF0DF; --bad:#B3402A; --bad-soft:#F7E1DB;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Source Sans 3",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10171C; --surface:#18222A; --ink:#E4ECF0; --muted:#93A3AE; --line:#2A3842;
+  --accent:#4FC3B8; --accent-soft:#163533; --good:#6CC47A; --good-soft:#1A3320; --bad:#F08A72; --bad-soft:#3A2019; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171C; --surface:#18222A; --ink:#E4ECF0; --muted:#93A3AE; --line:#2A3842;
+  --accent:#4FC3B8; --accent-soft:#163533; --good:#6CC47A; --good-soft:#1A3320; --bad:#F08A72; --bad-soft:#3A2019; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-direction:column;gap:4px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,6vw,38px);line-height:1.1;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0}
+.count{font-family:var(--f-mono);font-size:13px;color:var(--accent);letter-spacing:.04em}
+nav.tabs{display:flex;flex-wrap:wrap;gap:6px}
+nav.tabs button,.chip{font:600 15px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  padding:8px 14px;border-radius:999px;cursor:pointer}
+nav.tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.filters .lbl{font:500 12px var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:4px}
+.chip{font-size:14px;padding:5px 11px}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.meta{display:flex;justify-content:space-between;gap:10px;font:500 12px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.07em;flex-wrap:wrap}
+.term{font-family:var(--f-display);font-weight:700;font-size:clamp(24px,5vw,30px);line-height:1.15;margin:0;text-wrap:balance}
+.def{font-size:18px;margin:0}
+.hidden-def{color:var(--muted);font-style:italic;margin:0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:600 16px var(--f-body);border-radius:10px;padding:11px 16px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink);flex:1 1 140px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.good{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.btn.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;font:16px var(--f-body);padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt.ok{background:var(--good-soft);border-color:var(--good);color:var(--good);font-weight:600}
+.opt.no{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.feedback{margin:0;font-size:16px}
+.q{font-size:18px;margin:0}
+.listitems{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.listitems li{padding:10px 12px;border-radius:8px;border:1px dashed var(--line);color:var(--muted)}
+.listitems li.shown{border-style:solid;border-color:var(--accent);color:var(--ink);background:var(--accent-soft)}
+.listitems li b{font-weight:600}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pair>div{background:var(--bg);border-radius:10px;padding:12px;min-width:0}
+.pair h3{font:700 16px var(--f-display);margin:0 0 4px}
+.pair p{margin:0;font-size:15px}
+@media (max-width:480px){.pair{grid-template-columns:1fr}.panel{padding:16px}}
+.score{font-family:var(--f-display);font-size:44px;font-weight:700;margin:0;color:var(--accent)}
+.foot{font-size:13px;color:var(--muted);text-align:center}
+.search{font:16px var(--f-body);padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
+.glos{display:flex;flex-direction:column;gap:0}
+.glos div{padding:12px 0;border-bottom:1px solid var(--line)}
+.glos div:last-child{border-bottom:0}
+.glos b{font-family:var(--f-display);font-weight:700}
+.glos small{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-left:6px}
+.known{color:var(--good);font-family:var(--f-mono);font-size:11px;margin-left:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="count">TEST · 10 NOIEMBRIE 2026</span>
+    <h1>Senzații, percepții, reprezentări</h1>
+    <p class="sub">Fișe, quiz, liste și exemple din lecțiile S2–S5.</p>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-m="fise" aria-pressed="true">Fișe</button>
+    <button data-m="quiz" aria-pressed="false">Quiz</button>
+    <button data-m="exemple" aria-pressed="false">Exemple</button>
+    <button data-m="liste" aria-pressed="false">Liste</button>
+    <button data-m="confuzii" aria-pressed="false">Confuzii</button>
+    <button data-m="toate" aria-pressed="false">Toate definițiile</button>
+  </nav>
+
+  <div class="filters" id="filters"><span class="lbl">Lecții</span></div>
+
+  <main id="app"></main>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+const LESSONS={S2:"S2 Psihicul",S22:"S2.2 Ipostaze",S3:"S3 Procese senzoriale",S4:"S4 Senzații",S5:"S5 Percepții"};
+const D=[
+["S2","Psihologia","știința care studiază procesele psihice și comportamentul uman, prin metode științifice."],
+["S2","Simț comun","cunoștințe și explicații dobândite din experiența proprie, observație, familie, cultură și relații."],
+["S2","Metode de cercetare","observația, experimentul, chestionarul, interviul, studiul de caz."],
+["S2","Psihic","ansamblul proceselor, stărilor și activităților prin care omul cunoaște lumea și propria persoană, se adaptează la mediu și își reglează comportamentul."],
+["S2","Psihic obiectiv","activitatea psihică are bază biologică (creier, sistem nervos) și este influențată de realitate."],
+["S2","Psihic subiectiv","fiecare persoană percepe și interpretează realitatea în mod propriu."],
+["S2","Psihic material","are la bază activitatea creierului și a sistemului nervos."],
+["S2","Psihic ideal","gândurile, amintirile, emoțiile și imaginile mintale nu sunt obiecte materiale."],
+["S2","Psihic ca proces","activitate desfășurată în timp, cu transformarea continuă a informațiilor."],
+["S2","Psihic ca produs","rezultatele activității psihice: cunoștințe, amintiri, imagini, idei, convingeri, moduri de reacție."],
+["S2","Stare latentă","informații, amintiri, dorințe sau experiențe existente, dar neaccesibile momentan; pot fi activate de o situație."],
+["S2","Stare manifestă","proces psihic exprimat evident prin gânduri, emoții, cuvinte sau comportamente."],
+["S2","Manifestări normale","procese psihice care ajută adaptarea și funcționarea în relație cu ceilalți."],
+["S2","Manifestări patologice","modificări importante ale gândirii, simțirii sau comportamentului, care afectează semnificativ adaptarea la viața de zi cu zi."],
+["S2","Psihic determinat","este influențat de ereditate, dezvoltare biologică, mediu, educație, experiențe personale, relații."],
+["S2","Psihic determinant","ceea ce gândim, simțim și ne propunem influențează comportamentul și acțiunea asupra mediului."],
+["S2","Procese psihice cognitive","procese de cunoaștere: primesc, prelucrează, păstrează și folosesc informații despre lume și despre sine."],
+["S2","Procese cognitiv-senzoriale","cunoaștere prin contact direct cu realitatea, prin organe de simț: senzația, percepția, reprezentarea."],
+["S2","Procese cognitiv-intelectuale","prelucrare complexă a informațiilor: gândirea, memoria, imaginația."],
+["S2","Procese psihice reglatorii","procese care orientează, mobilizează și controlează comportamentul: motivația, afectivitatea, voința."],
+["S2","Motivația","oferă motive și determină acțiunea pentru atingerea scopurilor."],
+["S2","Procese afective","modul în care trăim și evaluăm situațiile, prin emoții și sentimente."],
+["S2","Voința","mobilizarea și controlul acțiunilor pentru atingerea unui scop, inclusiv în fața dificultăților."],
+["S22","Ipostazele psihicului","conștientul, subconștientul și inconștientul; niveluri ale vieții psihice aflate în relație și influențându-se reciproc."],
+["S22","Conștiința","formă de manifestare a psihicului prin care ești conștient de lume, de propriile gânduri, emoții și acțiuni și poți reflecta asupra lor."],
+["S22","Conștiința implicită","orientare asupra unei situații fără analiza clară și detaliată a fiecărui element."],
+["S22","Conștiința reflexivă (explicită)","reflecție intenționată asupra situației: analiza cauzelor și consecințelor, decizii deliberate."],
+["S22","Funcția cognitivă a conștiinței","cunoașterea și înțelegerea lumii și a propriei persoane; analiza, compararea și folosirea informațiilor."],
+["S22","Funcția proiectivă","orientarea spre viitor, imaginarea a ceea ce vrem să realizăm, stabilirea obiectivelor."],
+["S22","Funcția anticipativă","imaginarea evenimentelor viitoare și a consecințelor propriilor acțiuni."],
+["S22","Funcția de reglare","controlul și organizarea comportamentului în funcție de scopuri."],
+["S22","Conștiința de sine","capacitatea de a te percepe și analiza ca persoană distinctă: gânduri, emoții, comportamente, calități, limite."],
+["S22","Subconștientul","nivel între conștient și inconștient; informații, amintiri, deprinderi și automatisme care nu sunt în atenție, dar pot fi reactualizate."],
+["S22","Automatism","acțiune formată prin repetare, care nu mai necesită atenție conștientă."],
+["S22","Inconștientul","nivel care cuprinde procese, impulsuri, dorințe, amintiri și alte conținuturi de care persoana nu este conștientă direct."],
+["S22","Refularea (Freud)","îndepărtarea din conștiință a experiențelor neplăcute sau a conflictelor psihice; conținutul refulat continuă să influențeze indirect."],
+["S22","Principiul plăcerii (Freud)","tendința de a căuta satisfacerea dorințelor și de a evita neplăcerea."],
+["S22","Conflict psihic","tensiune între ceea ce ne dorim și ceea ce considerăm că putem sau trebuie să facem."],
+["S22","Modelul aisbergului (Freud)","partea vizibilă este conștientul; partea imersată cuprinde preconștientul (subconștientul) și inconștientul."],
+["S3","Procese cognitive senzoriale","forme de bază ale cunoașterii realității prin organele de simț: senzația, percepția, reprezentarea."],
+["S3","Senzația (S3)","proces psihic prin care sunt reflectate însușirile simple, elementare ale obiectelor și fenomenelor, prin acțiunea directă a stimulilor asupra organelor de simț."],
+["S3","Imagine primară","imagine rezultată din contactul direct dintre stimul și analizator (senzația, percepția)."],
+["S3","Intensitatea senzației","cât de puternic este resimțit stimulul."],
+["S3","Natura senzației","tipul senzației: vizuală, auditivă, gustativă, olfactivă, cutanată, kinestezică."],
+["S3","Durata senzației","perioada în care senzația este prezentă."],
+["S3","Tonalitatea afectivă","caracterul plăcut sau neplăcut al experienței senzoriale."],
+["S3","Percepția (S3)","formă complexă de cunoaștere senzorială, prin care se formează o imagine unitară și organizată a obiectului, prin integrarea și interpretarea informațiilor senzoriale."],
+["S3","Reprezentarea","proces psihic prin care se formează o imagine mintală secundară a unui obiect absent din câmpul perceptiv."],
+["S3","Imagine secundară","imagine formată pe baza unor percepții anterioare, fără acțiunea directă a stimulului."],
+["S3","Caracter schematic al reprezentării","păstrează doar însușirile caracteristice, nu toate detaliile obiectului."],
+["S3","Caracter intuitiv al reprezentării","păstrează elemente concrete ale obiectului."],
+["S3","Reprezentarea ca stare intermediară","formă aflată între procesele cognitive senzoriale și cele superioare; poate fi modificată voluntar."],
+["S4","Senzațiile","cea mai simplă și prima formă de cunoaștere senzorială a lumii exterioare și a stărilor organismului."],
+["S4","Receptori","celule specializate care transformă stimulii în impulsuri nervoase."],
+["S4","Stimul","formă de energie sau acțiune asupra organelor senzoriale care poate produce o senzație (lumină, unde sonore, temperatură, presiune, substanțe chimice)."],
+["S4","Senzații exteroceptive","au sursa în mediul extern: vizuale, auditive, olfactive, gustative, cutanate."],
+["S4","Senzații proprioceptive","informează despre poziția și mișcarea propriului corp."],
+["S4","Senzații interoceptive","provin din mediul intern al organismului: foame, sete, greață, sațietate."],
+["S4","Postefect (imagine consecutivă)","persistența senzației după încetarea stimulului."],
+["S4","Senzații vizuale","apar prin stimularea receptorilor vizuali de unde electromagnetice; culorile au luminozitate, tonalitate cromatică și saturație."],
+["S4","Senzații auditive","produse de vibrații transmise ca unde sonore; amplitudinea dă intensitatea, frecvența dă înălțimea, forma undei dă timbrul."],
+["S4","Efectul Doppler","schimbarea înălțimii percepute a sunetului când sursa se apropie sau se îndepărtează."],
+["S4","Senzații cutanate","apar prin stimularea receptorilor pielii; includ senzațiile tactile, termice și de durere."],
+["S4","Senzații tactile","informează despre presiune, duritate, asperitate, textură."],
+["S4","Senzații termice","determinate de diferența dintre temperatura corpului și a obiectului; contribuie la adaptarea termică."],
+["S4","Senzații de durere","semnalează stimuli care pot produce leziuni; rol de protecție."],
+["S4","Senzații olfactive","apar când substanțe volatile stimulează receptorii olfactivi din fosele nazale."],
+["S4","Senzații gustative","apar când substanțe solubile stimulează receptorii gustativi; gusturi fundamentale: dulce, acru, sărat, amar."],
+["S4","Pragul absolut","cea mai mică intensitate a unui stimul care poate fi percepută."],
+["S4","Sensibilitate","capacitatea de a sesiza stimuli de intensitate redusă; cu cât stimulul necesar este mai slab, cu atât sensibilitatea e mai mare."],
+["S4","Pragul diferențial","modificarea minimă a intensității unui stimul care poate fi sesizată."],
+["S4","Legea pragurilor diferențiale","pentru a sesiza o creștere a senzației este necesară adăugarea unei proporții din intensitatea inițială a stimulului."],
+["S4","Legile sensibilității","legi care explică modificarea sensibilității în funcție de intensitatea stimulului, repetare, alți stimuli, nevoi și interacțiunea analizatorilor."],
+["S4","Legea proporționalității inverse","sensibilitate mai mare înseamnă stimul necesar mai slab (prag absolut mai scăzut); sensibilitate mai mică înseamnă stimul necesar mai intens."],
+["S4","Legea pragurilor absolute","pentru fiecare analizator există un prag inferior (intensitatea minimă) și un prag superior (intensitatea maximă) ale stimulului care produce senzația."],
+["S4","Legea adaptării","sensibilitatea crește sau scade în funcție de intensitatea și repetarea stimulului."],
+["S4","Adaptare ascendentă","creșterea sensibilității la acțiunea frecventă a unui stimul slab."],
+["S4","Adaptare descendentă","scăderea sensibilității la acțiunea frecventă a unui stimul puternic."],
+["S4","Legea contrastului senzorial","sensibilitatea este influențată de acțiunea simultană sau succesivă a unor stimuli diferiți."],
+["S4","Contrast succesiv","stimulii se succed, iar primul influențează senzația produsă de următorul."],
+["S4","Contrast simultan","doi stimuli sunt recepționați în același timp."],
+["S4","Legea semnificației (senzații)","sensibilitatea crește față de stimulii concordanți cu starea, nevoile și scopul activității și scade față de cei neconcordanți."],
+["S4","Legea sinesteziei","asocierea senzațiilor din modalități senzoriale diferite (de exemplu sunete asociate cu culori)."],
+["S5","Percepția","proces psihic cognitiv senzorial prin care omul cunoaște obiectele, fenomenele și situațiile din mediu, integrând și interpretând informațiile simțurilor."],
+["S5","Caracter activ și selectiv","percepția organizează, selectează și interpretează informațiile; nu este o simplă sumă a senzațiilor."],
+["S5","Detecția stimulului","sesizarea faptului că există un stimul."],
+["S5","Discriminarea stimulului","diferențierea stimulului de ceilalți stimuli."],
+["S5","Identificarea","recunoașterea obiectului și încadrarea lui într-o categorie cunoscută."],
+["S5","Interpretarea","atribuirea unei semnificații obiectului sau situației, pe baza experienței și cunoștințelor."],
+["S5","Teoria gestaltistă","teorie germană din prima jumătate a secolului XX: „Întregul este mai mult decât suma părților sale”; percepția este organizare activă în structuri coerente."],
+["S5","Figură","elementul asupra căruia se concentrează percepția."],
+["S5","Fond","ceea ce se află în jurul figurii."],
+["S5","Figuri reversibile","imagini care pot fi organizate în moduri diferite, figura și fondul schimbându-se între ele (vaza sau două profiluri)."],
+["S5","Principiul proximității","elementele apropiate sunt percepute ca grup."],
+["S5","Principiul similarității","elementele asemănătoare (formă, culoare) sunt grupate perceptiv."],
+["S5","Principiul continuității","elementele care par să continue unele în altele sunt percepute ca structură continuă."],
+["S5","Principiul închiderii","completăm mental părțile lipsă ale unei figuri și o percepem întreagă."],
+["S5","Principiul bunei forme","tendința de a organiza stimulii într-o formă simplă, regulată, stabilă, ușor de recunoscut."],
+["S5","Legea integralității-structuralității","obiectele sunt percepute ca întreg organizat, nu ca sumă de însușiri."],
+["S5","Legea selectivității","în funcție de context și activitate, unii stimuli devin figură, ceilalți fond."],
+["S5","Legea constanței perceptive","tendința de a percepe obiectele ca relativ constante, deși informațiile senzoriale se modifică."],
+["S5","Constanța perceptivă","percepția obiectelor cu formă și mărime relativ constante, indiferent de unghiul din care sunt privite."],
+["S5","Legea obiectualității","percepția este orientată spre obiecte și fenomene concrete, cărora le atribuim însușiri."],
+["S5","Legea semnificației (percepții)","ceea ce percepem are sens pentru noi, prin experiența și cunoștințele anterioare."],
+["S5","Percepția spațială","apreciază forma, mărimea, poziția, distanța și perspectiva obiectelor și permite orientarea în spațiul tridimensional."],
+["S5","Indicatori monoculari","informații despre adâncime și distanță utilizabile cu un singur ochi."],
+["S5","Mărimea relativă","un obiect asemănător care formează o imagine mai mică pe retină este perceput ca mai îndepărtat."],
+["S5","Interpoziția","obiectul care acoperă parțial un altul este perceput ca mai apropiat."],
+["S5","Perspectiva liniară","liniile paralele par să se apropie pe măsură ce se îndepărtează."],
+["S5","Indicatori binoculari","informații despre adâncime care presupun folosirea ambilor ochi."],
+["S5","Disparitatea retiniană","fiecare ochi primește o imagine ușor diferită; integrarea lor produce percepția tridimensională."],
+["S5","Convergența oculară","orientarea ochilor spre interior la privirea unui obiect apropiat; cu cât obiectul e mai aproape, cu atât convergența e mai mare."],
+["S5","Percepția timpului","apreciază durata și succesiunea evenimentelor; este influențată de activitatea desfășurată."],
+["S5","Percepția mișcării","observarea schimbării poziției unui obiect față de mediu sau față de noi, prin distingerea lui de fondul perceptiv."],
+["S5","Percepția interpersonală","procesul prin care ne formăm o imagine despre alte persoane pe baza trăsăturilor observabile și a comportamentului lor."],
+["S5","Iluzia perceptivă","percepție deformată a unui obiect sau fenomen real, determinată de modul de organizare și interpretare a informațiilor senzoriale."],
+["S5","Percepții denaturate","percepții care se îndepărtează semnificativ de realitatea obiectivă, apărute uneori în contextul tulburărilor psihice."],
+["S5","Halucinația","experiență perceptivă în absența unui stimul extern corespunzător."]
+].map((r,i)=>({id:i,l:r[0],t:r[1],d:r[2]}));
+
+const EX=[
+["S4","Intri în piscină: apa pare foarte rece, după câteva minute senzația scade.","Legea adaptării (descendentă)",["Legea contrastului senzorial","Legea semnificației","Legea sinesteziei"]],
+["S4","Îți e foarte foame și observi imediat mirosul de mâncare din jur.","Legea semnificației",["Legea adaptării","Legea pragurilor absolute","Legea contrastului senzorial"]],
+["S4","Aceeași culoare pare diferită în funcție de culoarea de lângă ea.","Contrast simultan",["Contrast succesiv","Legea sinesteziei","Postefect"]],
+["S4","După ce bei ceva foarte dulce, o lămâie pare și mai acră.","Contrast succesiv",["Contrast simultan","Adaptare ascendentă","Legea semnificației"]],
+["S4","O persoană asociază anumite sunete cu anumite culori.","Legea sinesteziei",["Legea contrastului senzorial","Legea semnificației","Legea obiectualității"]],
+["S4","Ai auz fin și sesizezi un sunet foarte slab pe care colegul nu îl aude.","Legea proporționalității inverse",["Legea pragurilor diferențiale","Legea adaptării","Legea sinesteziei"]],
+["S4","Adaugi puțină greutate unui obiect ușor și o observi; la un obiect greu aceeași greutate nu se simte.","Legea pragurilor diferențiale",["Legea pragurilor absolute","Legea adaptării","Legea proporționalității inverse"]],
+["S4","Un sunet prea puternic nu mai e auzit ca sunet, ci produce durere.","Legea pragurilor absolute (prag superior)",["Legea pragurilor diferențiale","Legea contrastului senzorial","Legea adaptării"]],
+["S4","Stai mult în întuneric și ajungi să vezi lumini foarte slabe.","Adaptare ascendentă",["Adaptare descendentă","Contrast simultan","Postefect"]],
+["S4","Privești un bec, închizi ochii și încă vezi o pată luminoasă.","Postefect (imagine consecutivă)",["Adaptare descendentă","Contrast succesiv","Halucinație"]],
+["S4","Ambulanța trece pe lângă tine și sunetul sirenei pare să își schimbe înălțimea.","Efectul Doppler",["Contrast succesiv","Legea adaptării","Iluzie perceptivă"]],
+["S4","Știi unde îți este mâna chiar dacă nu o privești.","Senzații proprioceptive",["Senzații interoceptive","Senzații exteroceptive","Senzații tactile"]],
+["S4","Simți foame, sete sau greață.","Senzații interoceptive",["Senzații proprioceptive","Senzații exteroceptive","Senzații gustative"]],
+["S4","Atingi o cană rece fără să o vezi și simți doar că e rece, tare și netedă.","Senzație",["Percepție","Reprezentare","Iluzie"]],
+["S5","Privești un măr și îl recunoști ca măr, cu formă, culoare și textură integrate.","Percepție",["Senzație","Reprezentare","Halucinație"]],
+["S3","Închizi ochii și îți imaginezi casa bunicilor.","Reprezentare",["Percepție","Senzație","Iluzie perceptivă"]],
+["S5","O mașină se îndepărtează, imaginea pe retină scade, dar nu crezi că mașina se micșorează.","Constanța perceptivă",["Mărimea relativă","Perspectiva liniară","Iluzie perceptivă"]],
+["S5","Vezi fie o vază, fie două profiluri, în aceeași imagine.","Figuri reversibile (figură–fond)",["Principiul închiderii","Principiul similarității","Halucinație"]],
+["S5","Un cerc cu o mică porțiune lipsă este văzut tot ca un cerc întreg.","Principiul închiderii",["Principiul continuității","Principiul bunei forme","Principiul proximității"]],
+["S5","Puncte așezate aproape unele de altele par să formeze grupuri.","Principiul proximității",["Principiul similarității","Principiul închiderii","Legea selectivității"]],
+["S5","Cercurile roșii dintr-un șir mixt par să formeze un grup separat.","Principiul similarității",["Principiul proximității","Principiul continuității","Legea obiectualității"]],
+["S5","Șinele de cale ferată par să se întâlnească în depărtare.","Perspectiva liniară",["Interpoziția","Mărimea relativă","Disparitatea retiniană"]],
+["S5","Un copac care acoperă parțial o casă pare mai aproape decât casa.","Interpoziția",["Perspectiva liniară","Mărimea relativă","Convergența oculară"]],
+["S5","Ochii se întorc spre nas când apropii un creion de față.","Convergența oculară",["Disparitatea retiniană","Interpoziția","Legea adaptării"]],
+["S5","Fiecare ochi vede o imagine ușor diferită, iar creierul le combină în 3D.","Disparitatea retiniană",["Convergența oculară","Perspectiva liniară","Mărimea relativă"]],
+["S5","O oră cu prietenii pare scurtă, iar o oră de așteptare pare foarte lungă.","Percepția timpului",["Percepția mișcării","Legea adaptării","Iluzie perceptivă"]],
+["S5","Fotbalistul urmărește mingea și o distinge de terenul stabil.","Percepția mișcării",["Percepția spațială","Percepția timpului","Constanța perceptivă"]],
+["S5","Cineva vorbește calm și te ascultă, iar tu îți formezi o impresie bună despre el.","Percepția interpersonală",["Legea semnificației","Reprezentare","Conștiința de sine"]],
+["S5","Două linii egale par de lungimi diferite din cauza săgeților de la capete.","Iluzie perceptivă",["Halucinație","Constanța perceptivă","Contrast simultan"]],
+["S5","O persoană aude voci fără să existe vreun sunet real.","Halucinație",["Iluzie perceptivă","Postefect","Legea sinesteziei"]],
+["S5","În clasă, vocea profesorului e în prim-plan, zgomotul de afară trece în fundal.","Legea selectivității",["Legea integralității","Legea obiectualității","Principiul închiderii"]],
+["S22","Conduci bicicleta fără să te gândești la fiecare mișcare.","Automatism (subconștient)",["Inconștient","Conștiință reflexivă","Refulare"]]
+].map((r,i)=>({id:i,l:r[0],q:r[1],a:r[2],w:r[3]}));
+
+const LISTS=[
+["S4","Calitățile senzațiilor",["Natura","Intensitatea","Durata","Tonalitatea afectivă"]],
+["S4","Formele senzațiilor (după sursă)",["Exteroceptive","Proprioceptive","Interoceptive"]],
+["S4","Senzații exteroceptive",["Vizuale","Auditive","Olfactive","Gustative","Cutanate"]],
+["S4","Senzații cutanate",["Tactile","Termice","De durere"]],
+["S4","Gusturi fundamentale",["Dulce","Acru","Sărat","Amar"]],
+["S4","Caracteristicile culorilor",["Luminozitate","Tonalitate cromatică","Saturație"]],
+["S4","Caracteristicile sunetului",["Amplitudine → intensitate","Frecvență → înălțime","Forma undei → timbru"]],
+["S4","Legile sensibilității (7)",["Proporționalitatea inversă","Pragurile absolute","Pragurile diferențiale","Adaptarea","Contrastul senzorial","Semnificația","Sinestezia"]],
+["S4","Lanțul apariției senzației",["Stimul","Receptor","Impuls nervos transmis prin sistemul nervos","Prelucrare → senzație"]],
+["S5","Etapele procesului perceptiv",["Detecția","Discriminarea","Identificarea","Interpretarea"]],
+["S5","Legile gestaltiste (5)",["Proximitatea","Similaritatea","Continuitatea","Închiderea","Buna formă"]],
+["S5","Legile generale ale percepției (5)",["Integralitate-structuralitate","Selectivitate","Constanță perceptivă","Obiectualitate","Semnificație"]],
+["S5","Indicatori monoculari",["Mărimea relativă","Interpoziția","Perspectiva liniară"]],
+["S5","Indicatori binoculari",["Disparitatea retiniană","Convergența oculară"]],
+["S5","Forme ale percepției",["Spațială","A timpului","A mișcării","Interpersonală"]],
+["S3","Procese cognitive senzoriale",["Senzația","Percepția","Reprezentarea"]],
+["S3","Caracteristicile reprezentării",["Imagine secundară (obiect absent)","Schematică","Intuitivă","Intermediară, modificabilă voluntar"]],
+["S2","Procese cognitiv-intelectuale",["Gândirea","Memoria","Imaginația"]],
+["S2","Procese reglatorii",["Motivația","Afectivitatea","Voința"]],
+["S2","Metode de cercetare",["Observația","Experimentul","Chestionarul","Interviul","Studiul de caz"]],
+["S2","Caracteristici ale psihicului (perechi)",["Obiectiv – subiectiv","Material – ideal","Proces – produs","Latent – manifest","Normal – patologic","Determinat – determinant"]],
+["S22","Ipostazele psihicului",["Conștientul","Subconștientul","Inconștientul"]],
+["S22","Funcțiile conștiinței",["Cognitivă","Proiectivă","Anticipativă","De reglare"]]
+].map((r,i)=>({id:i,l:r[0],t:r[1],items:r[2]}));
+
+const CONF=[
+["S3","Senzație","însușire izolată a obiectului (rece, tare, neted)","Percepție","imaginea unitară a obiectului întreg (recunosc mărul)"],
+["S3","Percepție","stimulul este prezent; imagine primară","Reprezentare","stimulul este absent; imagine secundară, schematică"],
+["S4","Prag absolut","cel mai slab stimul care poate fi perceput","Prag diferențial","cea mai mică schimbare de intensitate care poate fi sesizată"],
+["S4","Adaptare ascendentă","stimul slab, frecvent → sensibilitatea crește","Adaptare descendentă","stimul puternic, frecvent → sensibilitatea scade"],
+["S4","Contrast simultan","stimuli recepționați în același timp","Contrast succesiv","stimuli unul după altul; primul îl influențează pe al doilea"],
+["S4","Senzații proprioceptive","poziția și mișcarea corpului","Senzații interoceptive","mediul intern: foame, sete, greață"],
+["S4","Legea semnificației la senzații","sensibilitatea crește pentru stimulii legați de nevoi și scop","Legea semnificației la percepții","ce percepem are sens prin experiența anterioară"],
+["S5","Iluzie perceptivă","există stimul real, perceput deformat","Halucinație","nu există stimul extern corespunzător"],
+["S5","Indicatori monoculari","merg cu un singur ochi: mărime relativă, interpoziție, perspectivă","Indicatori binoculari","necesită ambii ochi: disparitate, convergență"],
+["S5","Figură","elementul pe care se concentrează percepția","Fond","ce se află în jurul figurii"],
+["S5","Principiul închiderii","completăm părțile lipsă ale figurii","Principiul continuității","elementele care se prelungesc unele în altele formează o structură"],
+["S22","Subconștient","conținut neaflat în atenție, dar ușor de reactualizat (automatisme)","Inconștient","conținut de care persoana nu e conștientă direct (refulare)"],
+["S22","Conștiință implicită","orientare fără analiză detaliată","Conștiință reflexivă","analiză intenționată, decizii deliberate"],
+["S2","Psihic determinat","influențat de ereditate, mediu, educație","Psihic determinant","influențează comportamentul și mediul"]
+];
+
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let known=new Set(store.get("psiho_known",[]));
+let lessons=new Set(store.get("psiho_lessons",["S3","S4","S5"]));
+let mode="fise";
+const app=document.getElementById("app");
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const pool=()=>D.filter(x=>lessons.has(x.l));
+
+function renderFilters(){
+  const f=document.getElementById("filters");
+  f.innerHTML='<span class="lbl">Lecții</span>'+Object.entries(LESSONS).map(([k,v])=>`<button class="chip" data-l="${k}" aria-pressed="${lessons.has(k)}">${v}</button>`).join("");
+  f.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{const l=b.dataset.l;if(lessons.has(l)){if(lessons.size>1)lessons.delete(l)}else lessons.add(l);store.set("psiho_lessons",[...lessons]);renderFilters();start()});
+}
+function foot(){const p=pool();const k=p.filter(x=>known.has(x.id)).length;
+  document.getElementById("foot").textContent=`Știi ${k} din ${p.length} definiții în lecțiile alese.`}
+
+/* FISE */
+let deck=[],di=0,shown=false;
+function fise(){
+  const p=pool();deck=shuffle(p.filter(x=>!known.has(x.id)));
+  if(!deck.length){app.innerHTML=`<section class="panel"><p class="term">Le știi pe toate.</p><p class="def">Toate cele ${p.length} definiții din lecțiile alese sunt marcate ca știute.</p><div class="row"><button class="btn primary" id="reset">Ia-le de la capăt</button></div></section>`;
+    document.getElementById("reset").onclick=()=>{p.forEach(x=>known.delete(x.id));store.set("psiho_known",[...known]);start()};return}
+  di=0;shown=false;drawFisa();
+}
+function drawFisa(){
+  const c=deck[di];const left=deck.length-di;
+  app.innerHTML=`<section class="panel">
+   <div class="meta"><span>${LESSONS[c.l]}</span><span>${left} rămase</span></div>
+   <p class="term">${esc(c.t)}</p>
+   ${shown?`<p class="def">${esc(cap(c.d))}</p>`:`<p class="hidden-def">Spune definiția cu voce tare sau scrie-o, apoi verifică.</p>`}
+   <div class="row">${shown?`<button class="btn bad" id="no">Nu o știu</button><button class="btn good" id="yes">O știu</button>`:`<button class="btn primary" id="show">Arată definiția</button>`}</div>
+  </section>`;
+  if(!shown)document.getElementById("show").onclick=()=>{shown=true;drawFisa()};
+  else{
+    document.getElementById("yes").onclick=()=>{known.add(c.id);store.set("psiho_known",[...known]);next(false)};
+    document.getElementById("no").onclick=()=>next(true);
+  }
+  foot();
+}
+function next(again){const c=deck[di];if(again){const pos=Math.min(deck.length,di+3+Math.floor(Math.random()*3));deck.splice(pos,0,c)}di++;shown=false;
+  if(di>=deck.length){fise();return}drawFisa()}
+
+/* QUIZ */
+let qs=[],qi=0,qscore=0,qwrong=[];
+function quiz(){
+  const p=pool();qs=shuffle(p).slice(0,15).map(c=>{
+    const rev=Math.random()<.5;
+    const others=shuffle(p.filter(x=>x.id!==c.id&&x.l===c.l).concat(shuffle(D.filter(x=>x.id!==c.id)))).filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i).slice(0,3);
+    return rev?{q:`Ce termen are definiția: „${cap(c.d)}”`,a:c.t,opts:shuffle([c.t,...others.map(o=>o.t)]),c}
+              :{q:`Care este definiția termenului „${c.t}”?`,a:c.d,opts:shuffle([c.d,...others.map(o=>o.d)]),c};
+  });qi=0;qscore=0;qwrong=[];drawQ();
+}
+function drawQ(){
+  if(qi>=qs.length){result(qscore,qs.length,qwrong.map(w=>`<div><b>${esc(w.c.t)}</b> – ${esc(w.c.d)}</div>`),quiz);return}
+  const x=qs[qi];
+  app.innerHTML=`<section class="panel">
+   <div class="meta"><span>Întrebarea ${qi+1} / ${qs.length}</span><span>${qscore} corecte</span></div>
+   <div class="bar"><i style="width:${qi/qs.length*100}%"></i></div>
+   <p class="q">${esc(x.q)}</p>
+   <div class="opts">${x.opts.map((o,i)=>`<button class="opt" data-i="${i}">${esc(cap(o))}</button>`).join("")}</div>
+   <p class="feedback" id="fb"></p>
+   <div class="row" id="nx" hidden><button class="btn primary" id="nextq">Următoarea</button></div>
+  </section>`;
+  app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    const pick=x.opts[+b.dataset.i];const ok=pick===x.a;
+    app.querySelectorAll(".opt").forEach(o=>{o.disabled=true;if(x.opts[+o.dataset.i]===x.a)o.classList.add("ok")});
+    if(ok){qscore++;document.getElementById("fb").textContent="Corect."}
+    else{b.classList.add("no");qwrong.push(x);known.delete(x.c.id);store.set("psiho_known",[...known]);document.getElementById("fb").innerHTML=`Greșit. <b>${esc(x.c.t)}</b>: ${esc(x.c.d)}`}
+    document.getElementById("nx").hidden=false;document.getElementById("nextq").onclick=()=>{qi++;drawQ()};
+  });
+}
+function result(s,n,wrongHtml,again){
+  app.innerHTML=`<section class="panel">
+   <p class="score">${s} / ${n}</p>
+   <p class="def">${s===n?"Toate corecte.":s>=n*.7?"Bine. Revezi greșelile de mai jos.":"Revezi definițiile de mai jos și reia testul."}</p>
+   ${wrongHtml.length?`<div class="glos">${wrongHtml.join("")}</div>`:""}
+   <div class="row"><button class="btn primary" id="again">Încă o rundă</button></div>
+  </section>`;document.getElementById("again").onclick=again;foot();
+}
+
+/* EXEMPLE */
+let es=[],ei=0,escore=0,ewrong=[];
+function exemple(){
+  es=shuffle(EX.filter(x=>lessons.has(x.l)));
+  if(!es.length){app.innerHTML=`<section class="panel"><p class="def">Nu există exemple pentru lecțiile alese. Bifează S4 sau S5.</p></section>`;return}
+  ei=0;escore=0;ewrong=[];drawE();
+}
+function drawE(){
+  if(ei>=es.length){result(escore,es.length,ewrong.map(w=>`<div>${esc(w.q)}<br><b>${esc(w.a)}</b></div>`),exemple);return}
+  const x=es[ei];const opts=shuffle([x.a,...x.w]);
+  app.innerHTML=`<section class="panel">
+   <div class="meta"><span>Situația ${ei+1} / ${es.length}</span><span>${escore} corecte</span></div>
+   <div class="bar"><i style="width:${ei/es.length*100}%"></i></div>
+   <p class="q">${esc(x.q)}</p><p class="hidden-def">Ce lege, proces sau fenomen ilustrează?</p>
+   <div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div>
+   <p class="feedback" id="fb"></p>
+   <div class="row" id="nx" hidden><button class="btn primary" id="nexte">Următoarea</button></div>
+  </section>`;
+  app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    const ok=opts[+b.dataset.i]===x.a;
+    app.querySelectorAll(".opt").forEach(o=>{o.disabled=true;if(opts[+o.dataset.i]===x.a)o.classList.add("ok")});
+    if(ok){escore++;document.getElementById("fb").textContent="Corect."}else{b.classList.add("no");ewrong.push(x);document.getElementById("fb").innerHTML=`Răspuns: <b>${esc(x.a)}</b>`}
+    document.getElementById("nx").hidden=false;document.getElementById("nexte").onclick=()=>{ei++;drawE()};
+  });foot();
+}
+
+/* LISTE */
+let ls=[],li=0,lshown=0;
+function liste(){ls=shuffle(LISTS.filter(x=>lessons.has(x.l)));li=0;lshown=0;drawL()}
+function drawL(){
+  if(!ls.length){app.innerHTML=`<section class="panel"><p class="def">Nu există liste pentru lecțiile alese.</p></section>`;return}
+  const x=ls[li];
+  app.innerHTML=`<section class="panel">
+   <div class="meta"><span>${LESSONS[x.l]}</span><span>Lista ${li+1} / ${ls.length}</span></div>
+   <p class="term">${esc(x.t)}</p>
+   <p class="hidden-def">Sunt ${x.items.length} elemente. Spune-le pe rând, apoi dezvăluie-le.</p>
+   <ol class="listitems">${x.items.map((it,i)=>`<li class="${i<lshown?"shown":""}">${i<lshown?`<b>${i+1}.</b> ${esc(it)}`:`${i+1}. ?`}</li>`).join("")}</ol>
+   <div class="row">
+    ${lshown<x.items.length?`<button class="btn" id="one">Arată următorul</button><button class="btn" id="all">Arată tot</button>`:""}
+    <button class="btn primary" id="nextl">Lista următoare</button>
+   </div>
+  </section>`;
+  const o=document.getElementById("one"),a=document.getElementById("all");
+  if(o)o.onclick=()=>{lshown++;drawL()};if(a)a.onclick=()=>{lshown=x.items.length;drawL()};
+  document.getElementById("nextl").onclick=()=>{li=(li+1)%ls.length;lshown=0;drawL()};foot();
+}
+
+/* CONFUZII */
+function confuzii(){
+  const c=CONF.filter(x=>lessons.has(x[0]));
+  app.innerHTML=`<section class="panel"><p class="hidden-def">Perechi de noțiuni care se încurcă ușor la test.</p>
+   ${c.map(x=>`<div class="pair"><div><h3>${esc(x[1])}</h3><p>${esc(x[2])}</p></div><div><h3>${esc(x[3])}</h3><p>${esc(x[4])}</p></div></div>`).join("")||"<p>Nimic pentru lecțiile alese.</p>"}
+  </section>`;foot();
+}
+
+/* TOATE */
+function toate(){
+  app.innerHTML=`<section class="panel"><input class="search" id="s" type="search" placeholder="Caută un termen" aria-label="Caută un termen"><div class="glos" id="g"></div></section>`;
+  const s=document.getElementById("s"),g=document.getElementById("g");
+  const draw=()=>{const q=s.value.toLowerCase().trim();
+    g.innerHTML=pool().filter(x=>!q||x.t.toLowerCase().includes(q)||x.d.toLowerCase().includes(q))
+     .map(x=>`<div><b>${esc(x.t)}</b><small>${x.l.replace("S22","S2.2")}</small>${known.has(x.id)?'<span class="known">ȘTIUT</span>':""}<br>– ${esc(x.d)}</div>`).join("")||"<div>Niciun rezultat.</div>"};
+  s.oninput=draw;draw();foot();
+}
+
+const MODES={fise,quiz,exemple,liste,confuzii,toate};
+function start(){MODES[mode]();foot()}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll("#tabs button").forEach(x=>x.setAttribute("aria-pressed",x===b));store.set("psiho_mode",mode);start()});
+const sm=store.get("psiho_mode","fise");if(MODES[sm]){mode=sm;document.querySelectorAll("#tabs button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.m===mode))}
+renderFilters();start();
+</script>
+</body>
+</html>
